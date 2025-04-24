@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | Admin Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div class="wrapper">
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+      <div class="logo">
+        <span>Admin Panel</span>
+        <button class="mobile-menu-btn">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="index.html" class="nav-link active">
+            <i class="fas fa-home"></i>
+            Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="upload.html" class="nav-link">
+            <i class="fas fa-upload"></i>
+            Excel Upload
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="users.html" class="nav-link">
+            <i class="fas fa-users"></i>
+            User Management
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="tower-assign.html" class="nav-link">
+            <i class="fas fa-broadcast-tower"></i>
+            Tower Assignment
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header -->
+      <div class="header">
+        <div>
+          <h1 class="header-title">Dashboard</h1>
+          <button class="mobile-menu-btn">
+            <i class="fas fa-bars"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Dashboard Cards -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Quick Actions</h2>
+        </div>
+        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+          <a href="upload.html" class="btn btn-primary">
+            <i class="fas fa-upload"></i>
+            Upload Excel
+          </a>
+          <a href="users.html" class="btn btn-primary">
+            <i class="fas fa-users"></i>
+            Manage Users
+          </a>
+
+          
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/js/firebase.js"></script>
+</body>
+</html>

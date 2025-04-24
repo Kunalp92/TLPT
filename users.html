@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Management | Admin Panel</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    /* Users specific styles */
+    .table-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .user-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      min-width: 600px;
+    }
+
+    .user-table th,
+    .user-table td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .user-table th {
+      background: #f8fafc;
+      color: var(--text-light);
+      font-weight: 500;
+      text-transform: uppercase;
+      font-size: 12px;
+    }
+
+    .user-table tr:hover {
+      background: #f8fafc;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status-active {
+      background: #e0e7ff;
+      color: var(--primary-color);
+    }
+
+    .status-inactive {
+      background: #f1f5f9;
+      color: var(--text-light);
+    }
+
+    .search-bar {
+      padding: 8px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      width: 300px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: white;
+    }
+
+    .search-input {
+      border: none;
+      outline: none;
+      flex: 1;
+      background: transparent;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+      <div class="logo">
+        <span>Admin Panel</span>
+        <button class="mobile-menu-btn">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="index.html" class="nav-link">
+            <i class="fas fa-home"></i>
+            Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="upload.html" class="nav-link">
+            <i class="fas fa-upload"></i>
+            Excel Upload
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="users.html" class="nav-link active">
+            <i class="fas fa-users"></i>
+            User Management
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="tower-assign.html" class="nav-link">
+            <i class="fas fa-broadcast-tower"></i>
+            Tower Assignment
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header -->
+      <div class="header">
+        <div>
+          <h1 class="header-title">User Management</h1>
+          <button class="mobile-menu-btn">
+            <i class="fas fa-bars"></i>
+          </button>
+        </div>
+        <div class="search-bar">
+          <i class="fas fa-search"></i>
+          <input type="text" class="search-input" placeholder="Search users..." id="userSearch">
+        </div>
+      </div>
+
+      <!-- Users Card -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Registered Users</h2>
+          <button class="btn btn-primary" id="refreshBtn">
+            <i class="fas fa-sync-alt"></i>
+            Refresh
+          </button>
+        </div>
+        <div class="table-wrapper">
+          <table class="user-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Mobile</th>
+                <th>User ID</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="userList">
+              <tr>
+                <td colspan="5" style="text-align: center;">Loading users...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/js/firebase.js"></script>
+  <script src="assets/js/users.js"></script>
+</body>
+</html>

@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tower Management | Admin Panel</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #6366f1;
+      --secondary-color: #4f46e5;
+      --sidebar-bg: #1e293b;
+      --header-bg: #ffffff;
+      --card-bg: #ffffff;
+      --text-dark: #1e293b;
+      --text-light: #64748b;
+      --border-color: #e2e8f0;
+      --success-color: #10b981;
+      --warning-color: #f59e0b;
+      --error-color: #ef4444;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: #f1f5f9;
+      min-height: 100vh;
+    }
+
+    .wrapper {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Styles */
+    .sidebar {
+      width: 280px;
+      background: var(--sidebar-bg);
+      color: white;
+      padding: 20px;
+      position: fixed;
+      height: 100vh;
+      transition: transform 0.3s ease;
+      z-index: 100;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 40px;
+      padding: 0 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .nav-menu {
+      list-style: none;
+    }
+
+    .nav-item {
+      margin-bottom: 12px;
+    }
+
+    .nav-link {
+      color: #94a3b8;
+      text-decoration: none;
+      padding: 12px 15px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.3s;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      background: #334155;
+      color: white;
+    }
+
+    /* Main Content Area */
+    .main-content {
+      margin-left: 280px;
+      flex: 1;
+      padding: 30px;
+      transition: margin 0.3s ease;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      background: var(--header-bg);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .header-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    /* Card Styles */
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border: 1px solid var(--border-color);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .card-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    /* Filter Controls */
+    .filter-controls {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      min-width: 200px;
+    }
+
+    .filter-label {
+      font-size: 14px;
+      margin-bottom: 5px;
+      color: var(--text-light);
+    }
+
+    .filter-select {
+      padding: 8px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: white;
+    }
+
+    /* Tower Table */
+    .table-container {
+      overflow-x: auto;
+      margin-top: 20px;
+    }
+
+    .tower-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    .tower-table th {
+      background: #f8fafc;
+      color: var(--text-light);
+      font-weight: 500;
+      text-transform: uppercase;
+      font-size: 12px;
+      text-align: left;
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+    }
+
+    .tower-table td {
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: top;
+    }
+
+    .tower-table tr:hover {
+      background: #f8fafc;
+    }
+
+    .tower-table tr.selected {
+      background: rgba(99, 102, 241, 0.1);
+    }
+
+    /* Status Badges */
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status-complete {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .btn-primary {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--secondary-color);
+    }
+
+    .btn-outline {
+      background: white;
+      border: 1px solid var(--border-color);
+      color: var(--text-dark);
+    }
+
+    .btn-outline:hover {
+      background: #f8fafc;
+    }
+
+    /* Assignment Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 800px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 25px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--text-light);
+    }
+
+    .tower-details-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .detail-item {
+      margin-bottom: 10px;
+    }
+
+    .detail-label {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-bottom: 3px;
+    }
+
+    .detail-value {
+      font-weight: 500;
+    }
+
+    /* Form Elements */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--text-dark);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary-color);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 992px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .main-content {
+        margin-left: 0;
+      }
+
+      .mobile-menu-btn {
+        display: block;
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .main-content {
+        padding: 20px 15px;
+      }
+
+      .card {
+        padding: 20px;
+      }
+
+      .filter-group {
+        min-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+      <div class="logo">
+        <span>Admin Panel</span>
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="index.html" class="nav-link">
+            <i class="fas fa-home"></i>
+            Dashboard
+          </a>
+        </li>
+    
+          <li class="nav-item">
+            <a href="upload.html" class="nav-link">
+              <i class="fas fa-upload"></i>
+              Excel Upload
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="users.html" class="nav-link">
+              <i class="fas fa-users"></i>
+              User Management
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="tower-assign.html" class="nav-link active">
+              <i class="fas fa-broadcast-tower"></i>
+              Tower Management
+            </a>
+          </li>
+      </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header -->
+      <div class="header">
+        <div>
+          <h1 class="header-title">Tower Management</h1>
+          <button class="mobile-menu-btn" id="mobileMenuBtn2">
+            <i class="fas fa-bars"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tower Management Card -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">All Towers</h2>
+          <button class="btn btn-primary" id="refreshBtn">
+            <i class="fas fa-sync-alt"></i>
+            Refresh
+          </button>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="filter-controls">
+          <div class="filter-group">
+            <label class="filter-label">Line Name</label>
+            <select class="filter-select" id="lineFilter">
+              <option value="">All Lines</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">PO Number</label>
+            <select class="filter-select" id="poFilter">
+              <option value="">All POs</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Tower Type</label>
+            <select class="filter-select" id="typeFilter">
+              <option value="">All Types</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">EPC Agency</label>
+            <select class="filter-select" id="epcFilter">
+              <option value="">All Agencies</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tower Table -->
+        <div class="table-container">
+          <table class="tower-table" id="towerTable">
+            <thead>
+              <tr>
+                <th>Tower ID</th>
+                <th>Line Name</th>
+                <th>PO Number</th>
+                <th>Tower Type</th>
+                <th>EPC Agency</th>
+                <th>Concreting Status</th>
+                <th>Excavation Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="towerTableBody">
+              <tr>
+                <td colspan="8" style="text-align: center;">Loading tower data...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- Assignment Modal -->
+    <div class="modal" id="assignmentModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">Tower Assignment</h3>
+          <button class="close-modal" id="closeModal">&times;</button>
+        </div>
+        
+        <!-- Tower Details -->
+        <div class="tower-details-grid" id="towerDetails">
+          <!-- Details will be populated here -->
+        </div>
+
+        <!-- Assignment Form -->
+        <form id="assignmentForm">
+          <div class="form-group">
+            <label class="form-label" for="assignTo">Assign To</label>
+            <select class="form-control" id="assignTo" required>
+              <option value="">Select user...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="assignmentDate">Assignment Date</label>
+            <input type="date" class="form-control" id="assignmentDate" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="assignmentNotes">Notes</label>
+            <textarea class="form-control" id="assignmentNotes" rows="3"></textarea>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-outline" id="cancelAssignment">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i>
+              Save Assignment
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyC0VRcAZgS7Jzd2MKj5rWXVgOXvs92LmM0",
+      authDomain: "gwcet-3b7e0.firebaseapp.com",
+      databaseURL: "https://gwcet-3b7e0-default-rtdb.firebaseio.com",
+      projectId: "gwcet-3b7e0",
+      storageBucket: "gwcet-3b7e0.appspot.com",
+      messagingSenderId: "655005135966",
+      appId: "1:655005135966:web:16a133fb2d488856fd30cf"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // DOM Elements
+    const towerTableBody = document.getElementById('towerTableBody');
+    const lineFilter = document.getElementById('lineFilter');
+    const poFilter = document.getElementById('poFilter');
+    const typeFilter = document.getElementById('typeFilter');
+    const epcFilter = document.getElementById('epcFilter');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const assignmentModal = document.getElementById('assignmentModal');
+    const towerDetails = document.getElementById('towerDetails');
+    const assignToSelect = document.getElementById('assignTo');
+    const assignmentForm = document.getElementById('assignmentForm');
+    const closeModal = document.getElementById('closeModal');
+    const cancelAssignment = document.getElementById('cancelAssignment');
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenuBtn2 = document.getElementById('mobileMenuBtn2');
+    const sidebar = document.getElementById('sidebar');
+
+    // State variables
+    let allTowers = [];
+    let filteredTowers = [];
+    let selectedTower = null;
+    let filterOptions = {
+      lines: new Set(),
+      poNumbers: new Set(),
+      towerTypes: new Set(),
+      epcAgencies: new Set()
+    };
+
+    // Mobile menu toggle
+    mobileMenuBtn.addEventListener('click', toggleSidebar);
+    mobileMenuBtn2.addEventListener('click', toggleSidebar);
+
+    function toggleSidebar() {
+      sidebar.classList.toggle('open');
+    }
+
+    // Load all tower data
+    async function loadTowers() {
+      try {
+        towerTableBody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Loading tower data...</td></tr>';
+        refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+        
+        const snapshot = await database.ref("tower_data").once("value");
+        const towerData = snapshot.val();
+        
+        if (!towerData) {
+          towerTableBody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No tower data found</td></tr>';
+          return;
+        }
+
+        // Process tower data
+        allTowers = Object.entries(towerData).map(([key, tower]) => ({
+          id: key,
+          ...tower
+        }));
+
+        // Update filter options
+        updateFilterOptions(allTowers);
+        
+        // Apply initial filters
+        applyFilters();
+
+      } catch (error) {
+        towerTableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--error-color);">Error loading towers</td></tr>';
+        console.error('Error loading towers:', error);
+      } finally {
+        refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+      }
+    }
+
+    // Update filter dropdown options
+    function updateFilterOptions(towers) {
+      // Reset filter options
+      filterOptions = {
+        lines: new Set(),
+        poNumbers: new Set(),
+        towerTypes: new Set(),
+        epcAgencies: new Set()
+      };
+
+      // Collect all unique values for filters
+      towers.forEach(tower => {
+        if (tower["Name of Line"]) filterOptions.lines.add(tower["Name of Line"]);
+        if (tower["PO Number"]) filterOptions.poNumbers.add(tower["PO Number"]);
+        if (tower["Tower Type"]) filterOptions.towerTypes.add(tower["Tower Type"]);
+        if (tower["EPC Agency Number"]) filterOptions.epcAgencies.add(tower["EPC Agency Number"]);
+      });
+
+      // Populate line filter
+      lineFilter.innerHTML = '<option value="">All Lines</option>';
+      Array.from(filterOptions.lines).sort().forEach(line => {
+        lineFilter.innerHTML += `<option value="${line}">${line}</option>`;
+      });
+
+      // Populate PO filter
+      poFilter.innerHTML = '<option value="">All POs</option>';
+      Array.from(filterOptions.poNumbers).sort().forEach(po => {
+        poFilter.innerHTML += `<option value="${po}">${po}</option>`;
+      });
+
+      // Populate type filter
+      typeFilter.innerHTML = '<option value="">All Types</option>';
+      Array.from(filterOptions.towerTypes).sort().forEach(type => {
+        typeFilter.innerHTML += `<option value="${type}">${type}</option>`;
+      });
+
+      // Populate EPC filter
+      epcFilter.innerHTML = '<option value="">All Agencies</option>';
+      Array.from(filterOptions.epcAgencies).sort().forEach(epc => {
+        epcFilter.innerHTML += `<option value="${epc}">${epc}</option>`;
+      });
+    }
+
+    // Apply filters to tower data
+    function applyFilters() {
+      const lineFilterValue = lineFilter.value;
+      const poFilterValue = poFilter.value;
+      const typeFilterValue = typeFilter.value;
+      const epcFilterValue = epcFilter.value;
+
+      filteredTowers = allTowers.filter(tower => {
+        return (!lineFilterValue || tower["Name of Line"] === lineFilterValue) &&
+               (!poFilterValue || tower["PO Number"] === poFilterValue) &&
+               (!typeFilterValue || tower["Tower Type"] === typeFilterValue) &&
+               (!epcFilterValue || tower["EPC Agency Number"] === epcFilterValue);
+      });
+
+      displayTowers();
+    }
+
+    // Display filtered towers in table
+    function displayTowers() {
+      if (filteredTowers.length === 0) {
+        towerTableBody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No towers match the selected filters</td></tr>';
+        return;
+      }
+
+      towerTableBody.innerHTML = '';
+      filteredTowers.forEach(tower => {
+        const row = document.createElement('tr');
+        row.dataset.id = tower.id;
+        
+        // Determine concreting status
+        let concretingStatus = 'Pending';
+        if (tower["Concreting Status - PCC"] && tower["Concreting Status - RCC"]) {
+          concretingStatus = 'Completed';
+        }
+
+        // Determine excavation status
+        let excavationStatus = 'Pending';
+        if (tower["Excavation Measurement - Breadth"] && 
+            tower["Excavation Measurement - Depth"] && 
+            tower["Excavation Measurement - Length"]) {
+          excavationStatus = 'Completed';
+        }
+
+        row.innerHTML = `
+          <td>${tower["Tower ID"] || 'N/A'}</td>
+          <td>${tower["Name of Line"] || 'N/A'}</td>
+          <td>${tower["PO Number"] || 'N/A'}</td>
+          <td>${tower["Tower Type"] || 'N/A'}</td>
+          <td>${tower["EPC Agency Number"] || 'N/A'}</td>
+          <td><span class="status-badge ${concretingStatus === 'Completed' ? 'status-complete' : 'status-pending'}">${concretingStatus}</span></td>
+          <td><span class="status-badge ${excavationStatus === 'Completed' ? 'status-complete' : 'status-pending'}">${excavationStatus}</span></td>
+          <td>
+            <button class="btn btn-outline btn-assign" data-id="${tower.id}">
+              <i class="fas fa-user-edit"></i>
+              Assign
+            </button>
+          </td>
+        `;
+        
+        // Add click event to assign button
+        const assignBtn = row.querySelector('.btn-assign');
+        assignBtn.addEventListener('click', () => {
+          selectTowerForAssignment(tower);
+        });
+        
+        towerTableBody.appendChild(row);
+      });
+    }
+
+    // Select tower for assignment
+    function selectTowerForAssignment(tower) {
+      selectedTower = tower;
+      
+      // Populate tower details
+      towerDetails.innerHTML = '';
+      
+      // Group details by category
+      const categories = {
+        'Basic Information': [
+          { label: 'Tower ID', value: tower["Tower ID"] },
+          { label: 'Line Name', value: tower["Name of Line"] },
+          { label: 'PO Number', value: tower["PO Number"] },
+          { label: 'Tower Type', value: tower["Tower Type"] },
+          { label: 'EPC Agency', value: tower["EPC Agency Number"] }
+        ],
+        'Concreting Status': [
+          { label: 'PCC', value: tower["Concreting Status - PCC"] },
+          { label: 'RCC', value: tower["Concreting Status - RCC"] },
+          { label: 'Reinforcement', value: tower["Concreting Status - Reinforcement"] },
+          { label: 'Soil Strengthening', value: tower["Concreting Status - Soil Strengthening Quantity"] }
+        ],
+        'Excavation Status': [
+          { label: 'Dimensions (LxBxD)', value: `${tower["Excavation Measurement - Length"]}x${tower["Excavation Measurement - Breadth"]}x${tower["Excavation Measurement - Depth"]}` },
+          { label: 'Soil Classification', value: `A:${tower["Excavation Status - Soil Classification (PIT A)"]}, B:${tower["Excavation Status - Soil Classification (PIT B)"]}, C:${tower["Excavation Status - Soil Classification (PIT C)"]}, D:${tower["Excavation Status - Soil Classification (PIT D)"]}` },
+          { label: 'Water Table', value: `A:${tower["Excavation Status - Water Table (PIT A)"]}, B:${tower["Excavation Status - Water Table (PIT B)"]}, C:${tower["Excavation Status - Water Table (PIT C)"]}, D:${tower["Excavation Status - Water Table (PIT D)"]}` }
+        ]
+      };
+      
+      // Add details to modal
+      Object.entries(categories).forEach(([category, items]) => {
+        const categoryHeader = document.createElement('h4');
+        categoryHeader.style.gridColumn = '1 / -1';
+        categoryHeader.style.marginTop = '15px';
+        categoryHeader.style.marginBottom = '5px';
+        categoryHeader.textContent = category;
+        towerDetails.appendChild(categoryHeader);
+        
+        items.forEach(item => {
+          if (item.value) {
+            const detailItem = document.createElement('div');
+            detailItem.className = 'detail-item';
+            detailItem.innerHTML = `
+              <div class="detail-label">${item.label}</div>
+              <div class="detail-value">${item.value}</div>
+            `;
+            towerDetails.appendChild(detailItem);
+          }
+        });
+      });
+      
+      // Load users for assignment
+      loadUsersForAssignment();
+      
+      // Open modal
+      assignmentModal.style.display = 'flex';
+    }
+
+    // Load users for assignment dropdown
+    async function loadUsersForAssignment() {
+      try {
+        assignToSelect.innerHTML = '<option value="">Loading users...</option>';
+        
+        const snapshot = await database.ref("Users").once("value");
+        const users = snapshot.val();
+        
+        if (!users) {
+          assignToSelect.innerHTML = '<option value="">No users available</option>';
+          return;
+        }
+
+        let options = '<option value="">Select user...</option>';
+        Object.entries(users).forEach(([uid, user]) => {
+          options += `<option value="${uid}">${user.name || 'Unnamed User'} (${user.email || 'No email'})</option>`;
+        });
+        
+        assignToSelect.innerHTML = options;
+      } catch (error) {
+        console.error('Error loading users:', error);
+        assignToSelect.innerHTML = '<option value="">Error loading users</option>';
+      }
+    }
+
+    // Handle form submission
+    assignmentForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const userId = assignToSelect.value;
+      const assignmentDate = document.getElementById('assignmentDate').value;
+      const notes = document.getElementById('assignmentNotes').value;
+      
+      if (!userId || !assignmentDate) {
+        alert('Please select a user and assignment date');
+        return;
+      }
+      
+      try {
+        const assignmentsRef = database.ref("tower_assignments");
+        const newAssignmentRef = assignmentsRef.push();
+        
+        await newAssignmentRef.set({
+          towerId: selectedTower.id,
+          towerName: selectedTower["Name of Line"] || 'Unknown Tower',
+          towerType: selectedTower["Tower Type"] || 'Unknown',
+          assignedBy: "admin", // Replace with actual admin ID
+          assignedTo: userId,
+          assignmentDate: assignmentDate,
+          notes: notes,
+          status: "assigned",
+          createdAt: firebase.database.ServerValue.TIMESTAMP
+        });
+        
+        // Show success message
+        alert('Tower assigned successfully!');
+        
+        // Close modal
+        assignmentModal.style.display = 'none';
+        
+      } catch (error) {
+        console.error('Error saving assignment:', error);
+        alert('Error saving assignment. Please try again.');
+      }
+    });
+
+    // Modal close events
+    closeModal.addEventListener('click', function() {
+      assignmentModal.style.display = 'none';
+    });
+
+    cancelAssignment.addEventListener('click', function() {
+      assignmentModal.style.display = 'none';
+    });
+
+    // Filter change events
+    lineFilter.addEventListener('change', applyFilters);
+    poFilter.addEventListener('change', applyFilters);
+    typeFilter.addEventListener('change', applyFilters);
+    epcFilter.addEventListener('change', applyFilters);
+
+    // Refresh button
+    refreshBtn.addEventListener('click', loadTowers);
+
+    // Initial load
+    document.addEventListener('DOMContentLoaded', loadTowers);
+  </script>
+</body>
+</html>
